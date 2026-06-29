@@ -1,0 +1,207 @@
+{
+  "name": "AI Email Responder",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        -368
+      ],
+      "id": "5026ceb2-4e4c-42af-a38a-774db70a7754",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OkatK4G2lMs3FDjv",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional email assistant. Read this email and write a polite, concise reply.\n\nEmail Details:\n- From: {{ $json.From }}\n- Subject: {{ $json.Subject }}\n- Content: {{ $json.snippet }}\n\nWrite only the reply body — no subject line, no \"Here is a draft\" intro.\nKeep it professional, friendly, and under 5 sentences.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        608,
+        -368
+      ],
+      "id": "323fa0c7-b31f-4f7f-9c8a-ffcb331a9205",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -96
+      ],
+      "id": "db6c1dea-f5d9-45c7-aeb2-4419c89f1005",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tz03JJlPrDdc1LA8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Re: {{ $('Gmail Trigger').item.json.Subject }}",
+        "message": "={{ $json.text }}",
+        "options": {
+          "sendTo": "={{ $('Gmail Trigger').item.json.From }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        -368
+      ],
+      "id": "d6162885-6fd2-4dab-aff1-a7a3f32edf7f",
+      "name": "Create a draft",
+      "webhookId": "66b6d466-886d-4f90-bd32-9c033ba041e5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OkatK4G2lMs3FDjv",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 🤖 AI Email Responder\n\nAutomatically reads incoming emails and drafts\na professional AI-generated reply using Gemini.\n\nAuthor: Slim Khardani\nGitHub: github.com/slimkhardani",
+        "height": 192,
+        "width": 800,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -448
+      ],
+      "id": "3430611f-5afa-4815-90a1-474691bf9aff",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n\n1. Gmail OAuth2\n   → Connect your Google account in n8n\n   → Allow Gmail permissions\n\n2. Gemini API Key\n   → aistudio.google.com\n   → Free tier is enough",
+        "height": 304,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -240
+      ],
+      "id": "5a7d5f55-4e66-4190-861c-7e48834cff7e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 Workflow Steps\n\n1. GMAIL TRIGGER\n   Polls inbox every minute\n   Fires when new email arrives\n\n2. BASIC LLM CHAIN (Gemini)\n   Reads email subject + content\n   Drafts a professional reply\n\n3. GMAIL - CREATE DRAFT\n   Saves AI reply as Gmail draft\n   You review before sending",
+        "height": 304,
+        "width": 256,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -240
+      ],
+      "id": "d5c17ec7-beb8-48fd-9ad7-6555c5476cf4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## ✏️ Customize This Workflow\n\n- Change poll frequency: Edit Gmail Trigger\n- Change reply tone: Edit the prompt in LLM Chain\n- Auto-send instead of draft: Change Operation to \"Send\"\n  ⚠️ Use with caution!\n- Filter specific senders: Add filter in Gmail Trigger",
+        "height": 304,
+        "width": 272,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -240
+      ],
+      "id": "889bbd03-9cc5-4d60-9a64-88b7525c7e39",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ae39efe8-deca-4706-857f-0c1e9403909e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "wF7dzqVC8O38RmPD",
+  "tags": []
+}

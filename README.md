@@ -9,7 +9,7 @@ Built by [Slim Khardani](https://github.com/slimkhardani)
 | # | Name | Description | Status |
 |---|------|-------------|--------|
 | 01 | GitHub Weekly Digest | Fetches GitHub activity → Gemini summarizes → sends email every Monday | ✅ Ready |
-| 02 | AI Email Responder | Reads unread Gmail → drafts AI reply | 🔜 Coming soon |
+| 02 | AI Email Responder | Reads unread Gmail → drafts AI reply with Gemini | ✅ Ready |
 | 03 | CV-to-Job Matcher | Paste job description → AI scores fit with your CV | 🔜 Coming soon |
 | 04 | GitHub Issue Summarizer | Summarizes all open issues into priorities | 🔜 Coming soon |
 | 05 | Daily News Digest | HackerNews → Gemini summary → email | 🔜 Coming soon |
