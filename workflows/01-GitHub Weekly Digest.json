@@ -1,0 +1,266 @@
+{
+  "name": "GitHub Weekly Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e769e69c-d418-4e82-a0de-32c28214e8a6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/users/slimkhardani/events",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "b7d03276-4bd8-4230-a71f-6f79c9a1bf7b",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "z5Ixbmboh8licXPE",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all items from GitHub API\nconst items = $input.all();\n\n// Group events by repository\nconst repoActivity = {};\n\nfor (const item of items) {\n  const event = item.json;\n  const repoName = event.repo?.name || 'Unknown repo';\n  const eventType = event.type;\n  const actor = event.actor?.login;\n  const createdAt = event.created_at;\n\n  if (!repoActivity[repoName]) {\n    repoActivity[repoName] = {\n      commits: [],\n      issues: [],\n      pullRequests: [],\n      other: []\n    };\n  }\n\n  // Categorize by event type\n  if (eventType === 'PushEvent') {\n    const commits = event.payload?.commits || [];\n    for (const commit of commits) {\n      repoActivity[repoName].commits.push({\n        message: commit.message,\n        author: commit.author?.name || actor,\n        date: createdAt\n      });\n    }\n  } else if (eventType === 'IssuesEvent') {\n    repoActivity[repoName].issues.push({\n      action: event.payload?.action,\n      title: event.payload?.issue?.title,\n      date: createdAt\n    });\n  } else if (eventType === 'PullRequestEvent') {\n    repoActivity[repoName].pullRequests.push({\n      action: event.payload?.action,\n      title: event.payload?.pull_request?.title,\n      date: createdAt\n    });\n  } else {\n    repoActivity[repoName].other.push({\n      type: eventType,\n      date: createdAt\n    });\n  }\n}\n\n// Format into a clean text for Gemini\nlet activityText = '';\n\nfor (const [repo, activity] of Object.entries(repoActivity)) {\n  activityText += `\\n📁 REPO: ${repo}\\n`;\n\n  if (activity.commits.length > 0) {\n    activityText += `  Commits (${activity.commits.length}):\\n`;\n    for (const c of activity.commits) {\n      activityText += `    - \"${c.message}\" by ${c.author}\\n`;\n    }\n  }\n\n  if (activity.issues.length > 0) {\n    activityText += `  Issues (${activity.issues.length}):\\n`;\n    for (const i of activity.issues) {\n      activityText += `    - [${i.action}] ${i.title}\\n`;\n    }\n  }\n\n  if (activity.pullRequests.length > 0) {\n    activityText += `  Pull Requests (${activity.pullRequests.length}):\\n`;\n    for (const pr of activity.pullRequests) {\n      activityText += `    - [${pr.action}] ${pr.title}\\n`;\n    }\n  }\n}\n\n// Return single item with formatted activity for Gemini\nreturn [{\n  json: {\n    activity: activityText,\n    totalEvents: items.length,\n    reposCount: Object.keys(repoActivity).length,\n    weekOf: new Date().toDateString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "ee29e175-b34e-45d7-85be-8ef151c48b72",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a developer assistant. Summarize this GitHub activity for the week of {{ $('Code in JavaScript').item.json.weekOf }} in a clean, human-readable email digest.\n\nFormat the output like this:\n- Start with a friendly intro line\n- Group activity by repository\n- Under each repo list commits with their messages\n- End with a short motivational line for the developer\n\nKeep it concise and friendly. Here is the activity:\n\n{{ $('Code in JavaScript').item.json.activity }}",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "="
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        0
+      ],
+      "id": "2b9194da-244c-4db5-b81c-c8650c1c4dad",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        752,
+        224
+      ],
+      "id": "12b85e30-342d-4a71-88a7-5422624013b3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tz03JJlPrDdc1LA8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "khardenislim0@gmail.com",
+        "subject": "=Weekly GitHub Digest — {{ $now.format('DD MMM YYYY') }}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "aeb0505c-c7dd-4061-aadc-e2e22a932536",
+      "name": "Send a message",
+      "webhookId": "d646fb9b-d560-4d76-aaee-cb78e0b5d148",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OkatK4G2lMs3FDjv",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 🤖 GitHub Weekly Digest\n\nAutomatically fetches your GitHub activity every week,\nsummarizes it with Gemini AI, and sends it to your email.\n\nAuthor: Slim Khardani\nGitHub: github.com/slimkhardani",
+        "height": 224,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -704
+      ],
+      "id": "c006a9ca-2b2c-4e49-ad84-de43b00ab692",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n\n1. GitHub Personal Access Token\n   → github.com/settings/tokens\n   → Scopes: repo, read:user\n\n2. Gemini API Key\n   → aistudio.google.com\n   → Free tier is enough\n\n3. Gmail OAuth2\n   → Connect your Google account\n   → Allow n8n permissions",
+        "height": 416,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -464
+      ],
+      "id": "adea9ace-dbed-4bd7-8968-8922a3dc4c57",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 Workflow Steps\n\n1. SCHEDULE TRIGGER\n   Runs every Monday at 9:00 AM or any time by your choice.\n\n2. GITHUB API\n   Fetches your last 30 events\n   (commits, issues, PRs)\n\n3. CODE NODE\n   Groups events by repository\n   Formats data for AI\n\n4. GEMINI AI\n   Summarizes activity into\n   a human-readable digest\n\n5. GMAIL\n   Sends the digest to your inbox",
+        "height": 416,
+        "width": 688,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -464
+      ],
+      "id": "2e37f2c0-3d67-4fc0-b610-9c7893399fc2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## ✏️ Customize This Workflow\n\n- Change schedule: Edit the trigger node\n- Change recipient: Edit the Gmail node \"To\" field\n- Change AI tone: Edit the prompt in Basic LLM Chain\n- Add more repos: The GitHub API fetches all your repos automatically",
+        "height": 416,
+        "width": 288,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -464
+      ],
+      "id": "368cd8eb-577b-4b32-96b8-1659d4d8d3bb",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ee1931a6-0100-4d23-bcde-503cd6f74737",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "GIgniNG6muNGOcV7",
+  "tags": []
+}
