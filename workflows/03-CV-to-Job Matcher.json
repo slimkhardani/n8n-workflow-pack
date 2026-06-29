@@ -1,0 +1,207 @@
+{
+  "name": "CV-to-Job Matcher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cv-matcher",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        336,
+        -416
+      ],
+      "id": "674fa975-d649-4d96-9e6a-8f2585fa0b24",
+      "name": "Webhook",
+      "webhookId": "08e89b26-dae2-45a6-b4e1-33289ad488a9"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a career advisor helping a developer student evaluate job opportunities.\n\nHere is the candidate's profile:\n- Name: Slim Khardani\n- Education: Computer Engineering student at ISSAT Sousse, Tunisia\n- Experience: 7 years IT Technician + Final year internship as Web & Blockchain Developer\n- Main project: HashGov — decentralized identity platform on Hedera Hashgraph\n- Stack: React.js, Node.js, Express, MongoDB, Hedera Hashgraph, JavaScript, Python\n- Looking for: Remote internship\n\nHere is the job opportunity:\n- Company: {{ $json.body.company }}\n- Job Title: {{ $json.body.jobTitle }}\n- Job Description: {{ $json.body.jobDescription }}\n\nPlease analyze and return:\n\n1. MATCH SCORE: X/10\n2. MATCHING SKILLS: list skills from the JD that Slim already has\n3. MISSING SKILLS: list skills from the JD that Slim needs to learn\n4. TIME TO FILL GAPS: estimated time to learn missing skills\n5. RECOMMENDATION: Should he apply? (Yes / Maybe / No) with a short reason\n6. SUGGESTED ANGLE: How should Slim position himself in the cover email for this specific role?",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        496,
+        -416
+      ],
+      "id": "a8a937bb-7083-4679-9771-c2bad21c761f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -240
+      ],
+      "id": "00d500c3-1e2f-407d-b332-611f14e2e232",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tz03JJlPrDdc1LA8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "khardenislim0@gmail.com",
+        "subject": "=CV Match Analysis — {{ $('Webhook').item.json.body.jobTitle }} at {{ $('Webhook').item.json.body.company }}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -416
+      ],
+      "id": "50474d08-e99a-4d56-be4f-acfcdf4769ef",
+      "name": "Send a message",
+      "webhookId": "ab9e85b2-4885-41f1-b99c-c5e46cdc4ed3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OkatK4G2lMs3FDjv",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 🎯 CV-to-Job Matcher\nSends a job description via webhook → Gemini\nanalyzes your CV fit → emails you a full report",
+        "height": 144,
+        "width": 464,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -448
+      ],
+      "id": "9a2bb3a6-fbde-46c7-b0da-0f28515b2e2b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n1. Gemini API Key → aistudio.google.com\n2. Gmail OAuth2 → connected in n8n\n3. Update YOUR CV details in the LLM prompt",
+        "height": 128,
+        "width": 464,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -288
+      ],
+      "id": "f0b1fc19-3357-4d3b-b723-1b1fa2279e6e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🚀 How to Use\nSend a POST request to the webhook URL:\n\ncurl -X POST YOUR_WEBHOOK_URL \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"jobTitle\": \"Developer Intern\",\n    \"company\": \"Company Name\",\n    \"jobDescription\": \"paste JD here\"\n  }'",
+        "height": 256,
+        "width": 464,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -144
+      ],
+      "id": "49201fb3-143f-42aa-9344-e167d4698292",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## ✏️ Customize\n- Update YOUR profile in the LLM prompt\n- Change email recipient in Gmail node\n- Add more fields: salary, location, remote/onsite",
+        "height": 128,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -16
+      ],
+      "id": "ae90198f-23a3-4457-9476-d91e64b89c79",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 🔌 What is the Webhook here?\n\nThe Webhook is the TRIGGER of this workflow.\nInstead of running the workflow manually,\nyou send it a job description from your terminal\nand it starts automatically.\n\nHOW TO USE:\nCopy this command, paste the job description,\nand run it in your terminal:\n\ncurl -X POST YOUR_WEBHOOK_URL \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"jobTitle\": \"Developer Intern\",\n    \"company\": \"Company Name\",\n    \"jobDescription\": \"paste the full JD here\"\n  }'\n\nWHY NOT PDF?\nYour CV is hardcoded in the AI prompt (it rarely\nchanges). Only the job description changes each\ntime — so you send that via webhook.\n\nUPGRADE IDEA 💡\nA future version could accept a PDF upload\nand extract CV text dynamically.",
+        "height": 560,
+        "width": 384,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -448
+      ],
+      "id": "2eefe636-de39-4d98-9346-cda1d3daed89",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2dd7dfeb-2a1c-4b8b-8687-2bba20211ca4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "DXlxcEltAv3s43L8",
+  "tags": []
+}
