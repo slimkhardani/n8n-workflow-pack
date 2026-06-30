@@ -10,7 +10,7 @@ Built by [Slim Khardani](https://github.com/slimkhardani)
 | 01 | GitHub Weekly Digest | Fetches GitHub activity → Gemini summarizes → sends email every Monday | ✅ Ready |
 | 02 | AI Email Responder | Reads unread Gmail → drafts AI reply with Gemini | ✅ Ready |
 | 03 | CV-to-Job Matcher | Paste job description → AI scores fit with your CV → emails full report | ✅ Ready |
-| 04 | GitHub Issue Summarizer | Fetches open issues from any repo → Gemini prioritizes them → sends email | 🔜 Coming soon |
+| 04 | GitHub Issue Summarizer | Fetches open issues from any repo → Gemini prioritizes them → sends email | ✅ Ready |
 | 05 | Daily News Digest | HackerNews → Gemini summary → morning email | 🔜 Coming soon |
 | 06 | Webhook Notion Logger | Any webhook event → logs structured data to Notion | 🔜 Coming soon |
 | 07 | LinkedIn Post Generator | Give a topic → Gemini writes a post → saves to Google Sheets | 🔜 Coming soon |
