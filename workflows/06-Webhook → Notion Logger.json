@@ -1,0 +1,161 @@
+{
+  "name": "Webhook → Notion Logger",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "notion-logger",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        112,
+        -288
+      ],
+      "id": "aac4bf4f-3aa4-47a7-b81e-d2b89831bc88",
+      "name": "Webhook",
+      "webhookId": "6881870d-cf48-442d-b56e-4924434858df"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "c59ed792-a700-4745-90b9-7fe9fdd92d22",
+          "mode": "list",
+          "cachedResultName": "Webhook Logs",
+          "cachedResultUrl": "https://app.notion.com/p/c59ed792a700474590b97fe9fdd92d22"
+        },
+        "title": "={{ $json.body.event_type }} from {{ $json.body.source }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Source|rich_text",
+              "textContent": "={{ $json.body.source }}"
+            },
+            {
+              "key": "Event Type|rich_text",
+              "textContent": "={{ $json.body.event_type }}"
+            },
+            {
+              "key": "Payload|rich_text",
+              "textContent": "={{ JSON.stringify($json.body) }}"
+            },
+            {
+              "key": "Received At|date",
+              "includeTime": false,
+              "date": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        -288
+      ],
+      "id": "8d3ad315-87f6-4440-8af1-b0d79458b121",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "fLobDSto523msTw2",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 📝 Webhook → Notion Logger\n\nReceives any webhook event and logs it as a\nstructured row in a Notion database — perfect\nfor tracking form submissions, API calls, or events\nfrom any external service.\n\nAuthor: Slim Khardani\nGitHub: github.com/slimkhardani",
+        "height": 240,
+        "width": 528,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -352
+      ],
+      "id": "f1900009-06de-412e-b111-8afd27eaf1e4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n\n1. Notion Integration Token\n   → notion.so/my-integrations\n   → Create integration → copy token\n\n2. Connect integration to your database\n   → Open your Notion database\n   → ••• → Connections → Add your integration\n\n3. Database must have these properties:\n   Source (Text), Event Type (Text),\n   Payload (Text), Received At (Date)",
+        "height": 320,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -96
+      ],
+      "id": "a16471c8-32ab-4263-96ef-3204300f8697",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 Workflow Steps\n\n1. WEBHOOK TRIGGER\n   Receives POST with any JSON payload\n\n2. NOTION - CREATE DATABASE PAGE\n   Logs source, event type, full payload,\n   and timestamp as a new row",
+        "height": 208,
+        "width": 432,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        -96
+      ],
+      "id": "ad6d9932-2fc8-4120-b65c-b2c12cac0401",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 🚀 How to Use\n\nSend any event to the webhook:\n\ncurl -X POST YOUR_WEBHOOK_URL \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"source\": \"stripe\",\n  \"event_type\": \"payment_success\",\n  \"payload\": { \"amount\": 49.99 }\n}'\n\nUse it to log: form submissions, payment\nevents, GitHub webhooks, errors, anything!",
+        "height": 320,
+        "width": 368,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        128
+      ],
+      "id": "16fb5aac-61e0-4eb0-9ea4-f2d7e40b66a0",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "04f84cd4-2e8f-43b2-981d-69c9fbd41e11",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "LImBbPVzephpgSvS",
+  "tags": []
+}
