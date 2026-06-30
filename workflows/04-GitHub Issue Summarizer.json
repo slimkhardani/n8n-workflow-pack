@@ -1,0 +1,261 @@
+{
+  "name": "GitHub Issue Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "issue-summarizer",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        752,
+        -480
+      ],
+      "id": "6110a746-38a9-4b7e-afaa-2f613e0d8918",
+      "name": "Webhook",
+      "webhookId": "447985f2-2e61-48c9-8cbb-4f7ba6964482"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{$json.body.repo}}/issues?state=open&per_page=30",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1088,
+        -480
+      ],
+      "id": "1521ac44-73cd-4edc-b373-09471c992b82",
+      "name": "HTTP Request",
+      "credentials": {
+        "githubApi": {
+          "id": "YY90HHrul9CzzSte",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const issues = $input.all().map(i => i.json);\n\nconst formatted = issues.map(i => {\n  const labels = i.labels.map(l => l.name).join(', ') || 'no label';\n  const type = i.pull_request ? 'PR' : 'Issue';\n  const draft = i.draft ? ' [DRAFT]' : '';\n  const body = (i.body || '').slice(0, 300).replace(/\\n+/g, ' ');\n  return `#${i.number} [${type}${draft}] [${labels}] ${i.title}\\n${body}`;\n}).join('\\n\\n---\\n\\n');\n\nconst repo = $('Webhook').first().json.body.repo;\n\nreturn [{ json: { formatted_issues: formatted, repo: repo } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        -192
+      ],
+      "id": "465a27eb-f022-49bb-88fd-75b2cfc4b82d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior developer reviewing open issues and PRs for the repo {{ $json.repo }}.\n\nHere is the list:\n\n{{ $json.formatted_issues }}\n\nCategorize and prioritize them into:\n\n🔴 Critical Bugs — things breaking production right now\n🟡 Important — bugs or fixes that should be addressed soon  \n🟢 Features & Improvements — new capabilities being added\n⚪ Maintenance — deps, docs, chores\n\nFor each item write: #number — title — one-line action suggestion.\n\nKeep it concise and actionable.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        960,
+        -192
+      ],
+      "id": "f3e97023-ffbe-484e-a020-0044da5b95c5",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        768,
+        128
+      ],
+      "id": "1c0c8060-fb84-46ec-8d89-dfc37f0e4b62",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tz03JJlPrDdc1LA8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "khardenislim0@gmail.com",
+        "subject": "=GitHub Issue Report — {{ $('Code in JavaScript').item.json.repo }}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        128
+      ],
+      "id": "9323ef1f-430c-463b-a49a-d0ad46693b86",
+      "name": "Send a message",
+      "webhookId": "78c74c9d-af12-492c-84b6-73b0fe58cc0e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OkatK4G2lMs3FDjv",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 🔍 GitHub Issue Summarizer\n\nFetches all open issues and PRs from any GitHub repo,\nsends them to Gemini AI for prioritization,\nand emails you a structured report sorted by urgency.\n\nAuthor: Slim Khardani\nGitHub: github.com/slimkhardani",
+        "height": 224,
+        "width": 928,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -560
+      ],
+      "id": "a13620ec-329f-4a0a-846d-2b0ab776a2a3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n\n1. GitHub Personal Access Token\n   → github.com/settings/tokens\n   → Scopes: repo, read:user\n\n2. Gemini API Key\n   → aistudio.google.com\n   → Free tier is enough\n\n3. Gmail OAuth2\n   → Connect your Google account\n   → Allow n8n permissions",
+        "height": 304,
+        "width": 560,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        128,
+        -320
+      ],
+      "id": "26d374b5-872b-4739-93ac-f0499e7b5ac8",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 Workflow Steps\n\n1. WEBHOOK TRIGGER\n   Receives a POST request with\n   {\"repo\": \"owner/repo-name\"}\n\n2. GITHUB API\n   Fetches up to 30 open issues + PRs\n   from the specified repository\n\n3. CODE NODE\n   Formats each item: number, type,\n   labels, title, and body preview\n\n4. GEMINI AI\n   Prioritizes items into:\n   🔴 Critical / 🟡 Important\n   🟢 Features / ⚪ Maintenance\n\n5. GMAIL\n   Sends the full report to your inbox",
+        "height": 624,
+        "width": 352,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -320
+      ],
+      "id": "24ada078-a47d-42a9-9be7-2bf2bd839125",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 🚀 How to Use\n\nSend a POST request from your terminal:\n\ncurl -X POST YOUR_WEBHOOK_URL \\\n-H \"Content-Type: application/json\" \\\n-d '{\"repo\": \"activepieces/activepieces\"}'\n\nReplace YOUR_WEBHOOK_URL with the\nproduction URL from the Webhook node.\n\nWorks with ANY public GitHub repo!\nTry: \"vercel/next.js\" or \"nestjs/nest\"",
+        "height": 304,
+        "width": 560,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        128,
+        0
+      ],
+      "id": "194b52ab-6096-43e7-a4e5-4171416ac6ad",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b15d242a-d3e0-47d5-9dd5-b0460e698bd3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "ZrPurLxBBkeW88eM",
+  "tags": []
+}
