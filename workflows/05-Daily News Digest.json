@@ -1,0 +1,244 @@
+{
+  "name": "Daily News Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -48
+      ],
+      "id": "b915b776-c9cf-41d5-8783-fc74abf1141b",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=10",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        224,
+        -48
+      ],
+      "id": "3a21a2a5-b086-4128-a329-68f1ef00d69a",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst stories = data.hits;\n\nconst formatted = stories.map((s, i) => \n  `${i + 1}. ${s.title}\\n   👤 ${s.author} | ⬆️ ${s.points} points | 💬 ${s.num_comments} comments\\n   🔗 ${s.url}`\n).join('\\n\\n');\n\nconst today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });\n\nreturn [{ json: { formatted_stories: formatted, date: today } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -48
+      ],
+      "id": "d9d6146e-c315-48c5-987b-6d4a345f66bd",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a tech news curator. Today is {{ $json.date }}.\n\nHere are the top 10 stories from HackerNews today:\n\n{{ $json.formatted_stories }}\n\nWrite a morning digest email with:\n- A short intro (1-2 sentences)\n- For each story: one sentence explaining why it matters to a developer\n- A closing line\n\nKeep it concise, smart, and energetic. No fluff.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        -48
+      ],
+      "id": "5101017d-13f8-4f05-9839-d14d62a94cee",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        752,
+        176
+      ],
+      "id": "d7387017-76a3-4335-a99b-9b3a572276e0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tz03JJlPrDdc1LA8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "khardenislim0@gmail.com",
+        "subject": "=🗞️ Morning Digest — {{ $('Code in JavaScript').item.json.date }}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        -48
+      ],
+      "id": "06eee548-680f-47b8-ba63-95be9c85c4f4",
+      "name": "Send a message",
+      "webhookId": "d5cb7e3b-5fd6-4050-adae-fdc23b3251bf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OkatK4G2lMs3FDjv",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 🗞️ Daily News Digest\n\nFetches the top 10 trending stories from Algolia HackerNews\nevery morning, summarizes them with Gemini AI,\nand sends you a smart developer-focused digest email.\n\nAuthor: Slim Khardani\nGitHub: github.com/slimkhardani",
+        "height": 224,
+        "width": 400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -608
+      ],
+      "id": "fd66bab9-7aca-41ad-b08e-a08c2a725447",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n\n1. Gemini API Key\n   → aistudio.google.com\n   → Free tier is enough\n\n2. Gmail OAuth2\n   → Connect your Google account\n   → Allow n8n permissions\n\nNo GitHub token needed!\nHackerNews API is fully public.",
+        "height": 288,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -368
+      ],
+      "id": "befc193b-d6dd-4ff4-a482-f6d07fca4746",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 Workflow Steps\n\n1. SCHEDULE TRIGGER\n   Runs every day at 8:00 AM\n\n2. HACKERNEWS API (Algolia)\n   Fetches top 10 front page stories\n   with points, comments, and URLs\n\n3. CODE NODE\n   Formats stories for Gemini:\n   title, author, points, comments, link\n\n4. GEMINI AI\n   Writes a morning digest with\n   one insight per story for developers\n\n5. GMAIL\n   Sends the digest to your inbox",
+        "height": 528,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        464,
+        -608
+      ],
+      "id": "66a5c738-018f-47a6-aeda-02f1a8811bfc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## ✏️ Customize This Workflow\n\n- Change schedule: Edit the\n  Schedule Trigger node\n\n- Get more stories: Change\n  hitsPerPage=10 to hitsPerPage=20\n  in the HTTP Request URL\n\n- Filter by topic: Add a tag to URL\n  e.g. ?tags=front_page,javascript\n\n- Change recipient: Edit the\n  Gmail node \"To\" field",
+        "height": 528,
+        "width": 288,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -608
+      ],
+      "id": "ea743fb0-8141-4dd7-9bb4-7588dfb9ff47",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "acbdbb26-4cb2-42f0-9078-2f75dc061f7b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "o7L71fQw9fmay3Om",
+  "tags": []
+}
