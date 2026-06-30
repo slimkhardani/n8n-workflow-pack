@@ -12,7 +12,7 @@ Built by [Slim Khardani](https://github.com/slimkhardani)
 | 03 | CV-to-Job Matcher | Paste job description → AI scores fit with your CV → emails full report | ✅ Ready |
 | 04 | GitHub Issue Summarizer | Fetches open issues from any repo → Gemini prioritizes them → sends email | ✅ Ready |
 | 05 | Daily News Digest | HackerNews → Gemini summary → morning email | ✅ Ready |
-| 06 | Webhook Notion Logger | Any webhook event → logs structured data to Notion | 🔜 Coming soon |
+| 06 | Webhook Notion Logger | Any webhook event → logs structured data to Notion | ✅ Ready |
 | 07 | LinkedIn Post Generator | Give a topic → Gemini writes a post → saves to Google Sheets | 🔜 Coming soon |
 | 08 | CV-to-Job Matcher v2 | Upload CV as PDF → AI extracts + analyzes vs job description | 🔜 Coming soon |
 
