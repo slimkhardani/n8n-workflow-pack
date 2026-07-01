@@ -1,0 +1,223 @@
+{
+  "name": "CV-to-Job Matcher v2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cv-matcher-v2",
+        "options": {
+          "binaryPropertyName": "data",
+          "rawBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c8fc0978-b5e0-421e-92bb-38d8f9c30a5a",
+      "name": "Webhook",
+      "webhookId": "8840b5eb-d6e9-4f72-addd-8ee148c66702"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f5f42273-ce1b-40d9-972d-01669e3395bb",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a career coach. Analyze this candidate's CV against the job below.\n\nCV TEXT:\n{{ $('Extract from File').item.json.text }}\n\nJOB TITLE: {{ $('Webhook').item.json.body.jobTitle }}\nCOMPANY: {{ $('Webhook').item.json.body.company }}\nJOB DESCRIPTION: {{ $('Webhook').item.json.body.jobDescription }}\n\nProvide:\n1. Match Score (X/10)\n2. Top 3 matching skills\n3. Top 3 gaps\n4. A 2-sentence cover email opener tailored to this job\n\nBe honest and specific.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        416,
+        0
+      ],
+      "id": "48593d54-9825-4ee9-a274-83af6cfef884",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        352,
+        208
+      ],
+      "id": "b872676d-7542-4434-9f71-41c3e283a6fd",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tz03JJlPrDdc1LA8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "khardenislim0@gmail.com",
+        "subject": "=CV Match Report — {{ $('Webhook').item.json.body.jobTitle }} at {{ $('Webhook').item.json.body.company }}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "e945bdd0-0d8a-4c3e-864e-f4b1b86d2b1b",
+      "name": "Send a message",
+      "webhookId": "2423aba3-54c9-45ea-90a2-3565bf7e07f6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OkatK4G2lMs3FDjv",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 📄 CV-to-Job Matcher v2 (PDF Upload)\n\nUpload your CV as a PDF + paste a job description\n→ Gemini extracts your CV text automatically\n→ analyzes your fit → emails you a full report.\n\nUpgrade of Workflow 03 — no more copy-pasting!\n\nAuthor: Slim Khardani\nGitHub: github.com/slimkhardani",
+        "height": 256,
+        "width": 672,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        128,
+        -304
+      ],
+      "id": "4fb14326-eb76-4c65-9bd3-0ce8c96de1b5",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n\n1. Gemini API Key\n   → aistudio.google.com\n   → Free tier is enough\n\n2. Gmail OAuth2\n   → Connect your Google account\n   → Allow n8n permissions\n\nNo manual CV text needed!\nPDF is extracted automatically.",
+        "height": 288,
+        "width": 368,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        192
+      ],
+      "id": "b2e590bb-c56f-4641-a2ab-a63f68401927",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 Workflow Steps\n\n1. WEBHOOK TRIGGER\n   Receives multipart POST with:\n   - CV as PDF file (field: data)\n   - jobTitle, company, jobDescription\n\n2. EXTRACT FROM FILE\n   Extracts raw text from the PDF\n   automatically — no copy-paste needed\n\n3. GEMINI AI\n   Analyzes CV vs job description:\n   - Match Score (X/10)\n   - Top 3 matching skills\n   - Top 3 skill gaps\n   - Cover email opener\n\n4. GMAIL\n   Sends full report to your inbox",
+        "height": 480,
+        "width": 352,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -208
+      ],
+      "id": "e6457a04-f162-4890-b947-b5532628ee5c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 🚀 How to Use\n\ncurl -X POST YOUR_WEBHOOK_URL \\\n-F \"data=@/path/to/your/CV.pdf\" \\\n-F \"jobTitle=Backend Intern\" \\\n-F \"company=Activepieces\" \\\n-F \"jobDescription=Looking for Node.js,\n    NestJS and Docker experience...\"\n\nCheck your inbox for the full\nmatch report from Gemini!",
+        "height": 288,
+        "width": 368,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        192
+      ],
+      "id": "ff2dc019-52ef-491a-8273-567583f96387",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "587e63f7-7a48-442d-ad81-73f813169647",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "0qjJnfdbkSgq1Pf4",
+  "tags": []
+}

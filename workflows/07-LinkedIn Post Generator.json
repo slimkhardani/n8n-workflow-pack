@@ -1,0 +1,252 @@
+{
+  "name": "LinkedIn Post Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "linkedin-post",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        144,
+        144
+      ],
+      "id": "6e8711b6-e262-4675-bab0-245783659518",
+      "name": "Webhook",
+      "webhookId": "5defdc02-419a-417d-8fe6-df5831462e04"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a LinkedIn post about: {{ $json.body.topic }}\n\nTone: {{ $json.body.tone }}\n\nRules:\n- Hook in the first line (no \"I'm excited to announce\")\n- 3-5 short paragraphs, easy to scan\n- Include 1-2 relevant emojis max\n- End with a question or call to action\n- Add 3-5 relevant hashtags at the end\n- Max 200 words\n\nWrite ONLY the post, no explanations.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        352,
+        144
+      ],
+      "id": "d1098183-a00a-4b1a-99d8-57dd8ecada67",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        432,
+        288
+      ],
+      "id": "08e082ad-5ace-4631-9680-5a57de0190e0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tz03JJlPrDdc1LA8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1UZxXTV6Z1l9R-FEknnaUt2x_6X_VhgZCVxN7QCSnBwM",
+          "mode": "list",
+          "cachedResultName": "Linkedin Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UZxXTV6Z1l9R-FEknnaUt2x_6X_VhgZCVxN7QCSnBwM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UZxXTV6Z1l9R-FEknnaUt2x_6X_VhgZCVxN7QCSnBwM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now }}",
+            "Topic": "={{ $('Webhook').item.json.body.topic }}",
+            "Post": "={{ $json.text }}",
+            "Status": "Draft"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Post",
+              "displayName": "Post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        144
+      ],
+      "id": "204307a4-c5f5-447c-b5a8-c6b2fee68313",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "7xb1zbC9JuWp055O",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# 📢 LinkedIn Post Generator\n\nGive a topic via webhook → Gemini writes a \npolished LinkedIn post → saved to Google Sheets\nas a draft ready for review and posting.\n\nAuthor: Slim Khardani\nGitHub: github.com/slimkhardani",
+        "height": 224,
+        "width": 496,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -272
+      ],
+      "id": "950ec5fc-5999-484e-8bb4-c3f6cd21af04",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Setup Required\n\n1. Gemini API Key\n   → aistudio.google.com\n   → Free tier is enough\n\n2. Gmail OAuth2\n   → Connect your Google account\n   → Allow n8n permissions\n\n3. Google Sheets OAuth2\n   → Same Google account\n   → Create a sheet called \"LinkedIn Posts\"\n   → Columns: Date, Topic, Post, Status",
+        "height": 320,
+        "width": 496,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -32
+      ],
+      "id": "a654195a-5a0c-42af-82d5-3578b013f67d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔄 Workflow Steps\n\n1. WEBHOOK TRIGGER\n   Receives POST with:\n   {\"topic\": \"...\", \"tone\": \"...\"}\n\n2. GEMINI AI\n   Writes a LinkedIn post with:\n   - Strong hook first line\n   - 3-5 short paragraphs\n   - Relevant emojis\n   - Hashtags at the end\n\n3. GOOGLE SHEETS\n   Saves the post as a draft row:\n   Date, Topic, Post content, Status",
+        "height": 384,
+        "width": 272,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        112,
+        -272
+      ],
+      "id": "65d1d8ce-c5b1-4c71-bf73-ec41b173104d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 🚀 How to Use\n\ncurl -X POST YOUR_WEBHOOK_URL \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"topic\": \"I just built 7 AI automations\n           with n8n and Gemini\",\n  \"tone\": \"excited and technical\"\n}'\n\nThen open Google Sheets to review\nand copy your post to LinkedIn!",
+        "height": 384,
+        "width": 416,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -272
+      ],
+      "id": "3e55f3a8-c8fa-4bdb-84d6-eab19d08f603",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "229496a2-5e7e-402d-bbd8-7610ecab4024",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "789199c231eb65da32c0e3994f4c0ece85a15a9d940eafdf2a6aea6c592eaa16"
+  },
+  "id": "ItDcpBz6O5R3iRUz",
+  "tags": []
+}
