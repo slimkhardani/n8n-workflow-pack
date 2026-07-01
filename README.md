@@ -13,8 +13,8 @@ Built by [Slim Khardani](https://github.com/slimkhardani)
 | 04 | GitHub Issue Summarizer | Fetches open issues from any repo → Gemini prioritizes them → sends email | ✅ Ready |
 | 05 | Daily News Digest | HackerNews → Gemini summary → morning email | ✅ Ready |
 | 06 | Webhook Notion Logger | Any webhook event → logs structured data to Notion | ✅ Ready |
-| 07 | LinkedIn Post Generator | Give a topic → Gemini writes a post → saves to Google Sheets | 🔜 Coming soon |
-| 08 | CV-to-Job Matcher v2 | Upload CV as PDF → AI extracts + analyzes vs job description | 🔜 Coming soon |
+| 07 | LinkedIn Post Generator | Give a topic → Gemini writes a post → saves to Google Sheets | ✅ Ready |
+| 08 | CV-to-Job Matcher v2 | Upload CV as PDF → AI extracts + analyzes vs job description | ✅ Ready |
 
 ## How to import any workflow
 1. Open your n8n instance
